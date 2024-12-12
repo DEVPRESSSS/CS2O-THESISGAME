@@ -1,0 +1,9 @@
+body{
+    text-align: center;
+}
+
+#gameCanvas {
+    background-color: green;
+    width: 800px;
+    height: 600px;
+}
