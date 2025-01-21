@@ -1,9 +1,28 @@
+*{
+
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+
+
 body{
     text-align: center;
 }
 
 #gameCanvas {
-    background-color: green;
+    background-color: gray;
+    margin-top: 10%;
     width: 800px;
     height: 600px;
+    border-radius: 5%;
 }
+
+.header{
+    background-color: #333;
+    color: white;
+    padding: 10px;
+    font-size: 20px;
+    font-family: Arial, sans-serif;
+}   
