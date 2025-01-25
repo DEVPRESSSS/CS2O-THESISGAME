@@ -27,6 +27,7 @@ road.src = "images/road.png";
 const car = new Image();
 car.src = "images/Car1.png";
 
+
 // Draw road function
 function drawRoad() {
     ctx.drawImage(road, 0, 0, canvas.width, canvas.height);
@@ -37,6 +38,32 @@ function drawCar() {
     ctx.drawImage(car, carX, carY, carWidth, carHeight);
 }
 
+
+// Enemy car dimensions should match the main car
+let enemy_carWidth = carWidth;  // Match the width of Car1
+let enemy_carHeight = carHeight;  // Match the height of Car1
+
+// Enemy car's initial x position (centered on the road)
+let enemyCarX = canvas.width / 2 - enemy_carWidth / 2;
+
+// Enemy car's initial y position
+let enemyCarY = canvas.height - 150;
+
+// Load enemy car image
+const enemyCar = new Image();
+enemyCar.src = "images/EnemyCar.png";
+
+// Draw the enemy car function
+function drawEnemyCar() {
+    ctx.drawImage(enemyCar, enemyCarX, enemyCarY, enemy_carWidth, enemy_carHeight);
+}
+
+
+
+
+
+
+
 // Animation loop
 function animate() {
     // Clear the canvas
@@ -45,20 +72,38 @@ function animate() {
     // Draw the road image
     drawRoad();
 
-    // Update car position
+    // Update player's car position
     carY -= carSpeed;
 
-    // Reset car position if it goes off screen
+    // Reset player's car position if it goes off screen
     if (carY < -carHeight) {
         carY = canvas.height;
     }
 
-    // Draw the car
+    // Update enemy car position
+    enemyCarY += carSpeed;
+
+    // Reset enemy car position if it goes off screen (bottom of the canvas)
+    if (enemyCarY > canvas.height) {
+        enemyCarY = -enemy_carHeight; // Reset to above the screen
+        enemyCarX = Math.random() * (canvas.width - enemy_carWidth); // Randomize X position
+    }
+
+    // Draw the enemy car
+    drawEnemyCar();
+
+    // Draw the player's car
     drawCar();
 
-    // Request next frame
+    // Request the next frame
     requestAnimationFrame(animate);
 }
 
+
 // Start animation when images are loaded
 road.onload = car.onload = animate;
+
+
+
+
+
