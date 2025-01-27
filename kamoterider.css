@@ -1,11 +1,8 @@
 *{
-
     margin: 0;
     padding: 0;
     box-sizing: border-box;
 }
-
-
 
 body{
     text-align: center;
@@ -13,16 +10,7 @@ body{
 
 #gameCanvas {
     background-color: gray;
-    margin-top: 10%;
-    width: 800px;
-    height: 600px;
-    border-radius: 5%;
+    width: 650px;
+    height: 100%;
+    border-radius: 3px;
 }
-
-.header{
-    background-color: #333;
-    color: white;
-    padding: 10px;
-    font-size: 20px;
-    font-family: Arial, sans-serif;
-}   
