@@ -14,8 +14,8 @@ let carSpeed = 3;
 
 let enemyCarX = Math.random() * (canvas.width - carWidth);
 let enemyCarY = -50;
-let enemyCarWidth = carWidth;
-let enemyCarHeight = carHeight;
+let enemyCarWidth = 100;
+let enemyCarHeight = 100;
 let enemyCarSpeed = 2;
 
 let keys = {};
@@ -41,9 +41,18 @@ const gameOverScreen = document.getElementById("gameOverScreen");
 const finalScore = document.getElementById("finalScore");
 const restartButton = document.getElementById("restartButton");
 
+// Road background variables
+let roadY = 0;
+let roadSpeed = 2;
+
 // Draw functions
 function drawRoad() {
-    ctx.drawImage(road, 0, 0, canvas.width, canvas.height);
+    ctx.drawImage(road, 0, roadY, canvas.width, canvas.height);
+    ctx.drawImage(road, 0, roadY - canvas.height, canvas.width, canvas.height);
+    roadY += roadSpeed;
+    if (roadY >= canvas.height) {
+        roadY = 0;
+    }
 }
 
 function drawCar() {
@@ -114,6 +123,7 @@ function startGame() {
     carX = canvas.width / 2 - carWidth / 2;
     carY = canvas.height - 50;
     enemyCarY = -enemyCarHeight;
+    roadY = 0;
     gameActive = true;
     animate();
 }
