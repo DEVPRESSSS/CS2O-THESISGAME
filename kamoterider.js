@@ -1,139 +1,126 @@
 // Get the canvas element
 const canvas = document.getElementById('gameCanvas');
-
-// Get the canvas context
 const ctx = canvas.getContext('2d');
 
-// Set the car x position
+canvas.width = 400;
+canvas.height = 600;
+
+// Game variables
 let carX = canvas.width / 2 - 10;
+let carY = canvas.height - 50;
+let carWidth = 30;
+let carHeight = 50;
+let carSpeed = 3;
 
-// Set the car y position
-let carY = canvas.height - 30;
+let enemyCarX = Math.random() * (canvas.width - carWidth);
+let enemyCarY = -50;
+let enemyCarWidth = carWidth;
+let enemyCarHeight = carHeight;
+let enemyCarSpeed = 2;
 
-// Car height
-let carHeight = 30;
+let keys = {};
+let score = 0;
+let gameActive = false;
 
-// Car width
-let carWidth = 20;
-
-// Car speed
-let carSpeed = 2;
-
-// Enemy Car Speed
-let enemyCarSpeed = 0.9;
-
-// Load road image
+// Load images
 const road = new Image();
 road.src = "images/road.png";
 
-// Load car image
 const car = new Image();
 car.src = "images/Car1.png";
 
-// Draw road function
+const enemyCar = new Image();
+enemyCar.src = "images/EnemyCar.png";
+
+// UI Elements
+const startScreen = document.getElementById("startScreen");
+const startButton = document.getElementById("startButton");
+const scoreBox = document.getElementById("scoreBox");
+const scoreDisplay = document.getElementById("score");
+const gameOverScreen = document.getElementById("gameOverScreen");
+const finalScore = document.getElementById("finalScore");
+const restartButton = document.getElementById("restartButton");
+
+// Draw functions
 function drawRoad() {
     ctx.drawImage(road, 0, 0, canvas.width, canvas.height);
 }
 
-// Draw car function
 function drawCar() {
     ctx.drawImage(car, carX, carY, carWidth, carHeight);
 }
 
-// Enemy car dimensions should match the main car
-let enemy_carWidth = 20;  // Match the width of Car1
-let enemy_carHeight = 30;  // Match the height of Car1
-
-// Enemy car's initial x position (centered on the road)
-let enemyCarX = canvas.width / 2 - enemy_carWidth / 2;
-
-// Enemy car's initial y position
-let enemyCarY = canvas.height - 150;
-
-// Load enemy car image
-const enemyCar = new Image();
-enemyCar.src = "images/EnemyCar.png";
-
-// Draw the enemy car function
 function drawEnemyCar() {
-    ctx.drawImage(enemyCar, enemyCarX, enemyCarY, enemy_carWidth, enemy_carHeight);
+    ctx.drawImage(enemyCar, enemyCarX, enemyCarY, enemyCarWidth, enemyCarHeight);
 }
 
-// Track which keys are pressed
-let keys = {};
-
-// Event listeners for keydown and keyup
-window.addEventListener('keydown', function(e) {
-    keys[e.key] = true;
-});
-
-window.addEventListener('keyup', function(e) {
-    keys[e.key] = false;
-});
-
-// Score tracking
-let score = 0;
-
-// Collision detection function
+// Collision detection
 function detectCollision() {
-    return carX < enemyCarX + enemy_carWidth &&
-           carX + carWidth > enemyCarX &&
-           carY < enemyCarY + enemy_carHeight &&
-           carY + carHeight > enemyCarY;
+    return (
+        carX < enemyCarX + enemyCarWidth &&
+        carX + carWidth > enemyCarX &&
+        carY < enemyCarY + enemyCarHeight &&
+        carY + carHeight > enemyCarY
+    );
 }
 
 // Animation loop
 function animate() {
-    // Clear the canvas
+    if (!gameActive) return;
+
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-    // Draw the road image
     drawRoad();
-
-    // Update player's car position based on keys pressed
-    if (keys['w'] && carY > 0) {
-        carY -= carSpeed;
-    }
-    if (keys['s'] && carY < canvas.height - carHeight) {
-        carY += carSpeed;
-    }
-    if (keys['a'] && carX > 0) {
-        carX -= carSpeed;
-    }
-    if (keys['d'] && carX < canvas.width - carWidth) {
-        carX += carSpeed;
-    }
-
-    // Update enemy car position
-    enemyCarY += enemyCarSpeed;
-
-    // Reset enemy car position if it goes off screen (bottom of the canvas)
-    if (enemyCarY > canvas.height) {
-        enemyCarY = -enemy_carHeight; // Reset to above the screen
-        enemyCarX = Math.random() * (canvas.width - enemy_carWidth); // Randomize X position
-        score++; // Increase score when enemy car resets
-    }
-
-    // Draw the enemy car
+    drawCar();
     drawEnemyCar();
 
-    // Draw the player's car
-    drawCar();
+    // Move player
+    if (keys['w'] && carY > 0) carY -= carSpeed;
+    if (keys['s'] && carY < canvas.height - carHeight) carY += carSpeed;
+    if (keys['a'] && carX > 0) carX -= carSpeed;
+    if (keys['d'] && carX < canvas.width - carWidth) carX += carSpeed;
 
-    // Check for collision
-    if (detectCollision()) {
-        alert('Game Over! Your score: ' + score);
-        document.location.reload();
+    // Move enemy car
+    enemyCarY += enemyCarSpeed;
+
+    // Reset enemy when it leaves the screen
+    if (enemyCarY > canvas.height) {
+        enemyCarY = -enemyCarHeight;
+        enemyCarX = Math.random() * (canvas.width - enemyCarWidth);
+        score++;
+        scoreDisplay.innerText = score;
     }
 
-    // Draw the score
-    ctx.fillStyle = 'black';
-    ctx.font = '20px Arial';
-    ctx.fillText('Score: ' + score, 10, 20);
+    // Collision detection
+    if (detectCollision()) {
+        gameOver();
+    }
 
-    // Request the next frame
     requestAnimationFrame(animate);
 }
 
-// Start animation when images are loaded
-road.onload = car.onload = animate;
+// Game over function
+function gameOver() {
+    gameActive = false;
+    gameOverScreen.style.display = "block";
+    finalScore.innerText = score;
+}
+
+// Start game function
+function startGame() {
+    startScreen.style.display = "none";
+    gameOverScreen.style.display = "none";
+    score = 0;
+    scoreDisplay.innerText = score;
+    carX = canvas.width / 2 - carWidth / 2;
+    carY = canvas.height - 50;
+    enemyCarY = -enemyCarHeight;
+    gameActive = true;
+    animate();
+}
+
+// Event listeners
+startButton.addEventListener("click", startGame);
+restartButton.addEventListener("click", startGame);
+
+window.addEventListener("keydown", (e) => (keys[e.key] = true));
+window.addEventListener("keyup", (e) => (keys[e.key] = false));

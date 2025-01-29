@@ -1,16 +1,96 @@
-*{
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
-
-body{
+body {
+    font-family: Arial, sans-serif;
+    background: #1a1a1a;
+    color: white;
     text-align: center;
+    margin: 0;
+    overflow: hidden;
 }
 
-#gameCanvas {
-    background-color: gray;
-    width: 650px;
-    height: 100%;
-    border-radius: 3px;
+/* Start screen */
+#startScreen {
+    position: absolute;
+    width: 100%;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.8);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+#startScreen h1 {
+    font-size: 3rem;
+    margin-bottom: 20px;
+}
+
+#startButton {
+    padding: 15px 30px;
+    font-size: 1.5rem;
+    background: orange;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+#startButton:hover {
+    background: darkorange;
+}
+
+/* Score box */
+#scoreBox {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    background: rgba(0, 0, 0, 0.7);
+    padding: 10px 20px;
+    font-size: 1.5rem;
+    border-radius: 10px;
+}
+
+/* Canvas */
+.wrapper {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+}
+
+canvas {
+    background: #333;
+    border: 2px solid white;
+    border-radius: 10px;
+}
+
+/* Game Over screen */
+#gameOverScreen {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(0, 0, 0, 0.8);
+    padding: 20px;
+    border-radius: 10px;
+    display: none;
+}
+
+#gameOverScreen h2 {
+    font-size: 2rem;
+    margin-bottom: 10px;
+}
+
+#restartButton {
+    padding: 10px 20px;
+    font-size: 1.2rem;
+    background: red;
+    border: none;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+#restartButton:hover {
+    background: darkred;
 }

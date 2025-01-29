@@ -5,15 +5,24 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Kamote Rider</title>
 
-    <link rel="Stylesheet" href="kamoterider.css">
+    <link rel="stylesheet" href="kamoterider.css">
 </head>
 <body>
 
-    <div class="wrapper">
-        <!-- Game Canvas -->
-        <canvas id="gameCanvas" >
-        </canvas>
+    <div id="startScreen">
+        <h1>🚘 Kamote Rider</h1>
+        <button id="startButton">Start Game</button>
+    </div>
 
+    <div class="wrapper">
+        <div id="scoreBox">Score: <span id="score">0</span></div>
+        <canvas id="gameCanvas"></canvas>
+    </div>
+
+    <div id="gameOverScreen">
+        <h2>Game Over!</h2>
+        <p>Your Score: <span id="finalScore">0</span></p>
+        <button id="restartButton">Restart</button>
     </div>
 
     <script src="kamoterider.js"></script>
