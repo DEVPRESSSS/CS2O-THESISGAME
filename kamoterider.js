@@ -8,14 +8,13 @@ canvas.height = 600;
 // Game variables
 let carX = canvas.width / 2 - 10;
 let carY = canvas.height - 50;
-let carWidth = 30;
-let carHeight = 50;
+let carWidth = 50;
+let carHeight = 100;
 let carSpeed = 3;
 
-let enemyCarX = Math.random() * (canvas.width - carWidth);
-let enemyCarY = -50;
-let enemyCarWidth = 100;
-let enemyCarHeight = 100;
+let enemyCars = [];
+let enemyCarWidth = carWidth + 50;
+let enemyCarHeight = carHeight;
 let enemyCarSpeed = 2;
 
 let keys = {};
@@ -59,19 +58,25 @@ function drawCar() {
     ctx.drawImage(car, carX, carY, carWidth, carHeight);
 }
 
-function drawEnemyCar() {
-    ctx.drawImage(enemyCar, enemyCarX, enemyCarY, enemyCarWidth, enemyCarHeight);
+function drawEnemyCars() {
+    enemyCars.forEach(enemy => {
+        ctx.drawImage(enemyCar, enemy.x, enemy.y, enemyCarWidth, enemyCarHeight);
+    });
 }
 
 // Collision detection
 function detectCollision() {
-    return (
-        carX < enemyCarX + enemyCarWidth &&
-        carX + carWidth > enemyCarX &&
-        carY < enemyCarY + enemyCarHeight &&
-        carY + carHeight > enemyCarY
-    );
+    const paddingX = 18; // Adjust horizontal collision sensitivity
+    const paddingY = 0.02; // Adjust vertical collision sensitivity
+
+    return enemyCars.some(enemy => (
+        carX + paddingX < enemy.x + enemyCarWidth - paddingX &&
+        carX + carWidth - paddingX > enemy.x + paddingX &&
+        carY + paddingY < enemy.y + enemyCarHeight - paddingY &&
+        carY + carHeight - paddingY > enemy.y
+    ));
 }
+
 
 // Animation loop
 function animate() {
@@ -80,7 +85,7 @@ function animate() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     drawRoad();
     drawCar();
-    drawEnemyCar();
+    drawEnemyCars();
 
     // Move player
     if (keys['w'] && carY > 0) carY -= carSpeed;
@@ -88,16 +93,18 @@ function animate() {
     if (keys['a'] && carX > 0) carX -= carSpeed;
     if (keys['d'] && carX < canvas.width - carWidth) carX += carSpeed;
 
-    // Move enemy car
-    enemyCarY += enemyCarSpeed;
+    // Move enemy cars
+    enemyCars.forEach(enemy => {
+        enemy.y += enemyCarSpeed;
 
-    // Reset enemy when it leaves the screen
-    if (enemyCarY > canvas.height) {
-        enemyCarY = -enemyCarHeight;
-        enemyCarX = Math.random() * (canvas.width - enemyCarWidth);
-        score++;
-        scoreDisplay.innerText = score;
-    }
+        // Reset enemy when it leaves the screen
+        if (enemy.y > canvas.height) {
+            enemy.y = -enemyCarHeight;
+            enemy.x = Math.random() * (canvas.width - enemyCarWidth);
+            score++;
+            scoreDisplay.innerText = score;
+        }
+    });
 
     // Collision detection
     if (detectCollision()) {
@@ -122,8 +129,14 @@ function startGame() {
     scoreDisplay.innerText = score;
     carX = canvas.width / 2 - carWidth / 2;
     carY = canvas.height - 50;
-    enemyCarY = -enemyCarHeight;
     roadY = 0;
+    enemyCars = Array.from({ length: 5 }, () => ({
+        x: Math.random() * (canvas.width - enemyCarWidth),
+        y: Math.random() * -canvas.height
+    })).map(enemy => ({
+        ...enemy,
+        x: Math.max(0, Math.min(enemy.x, canvas.width - enemyCarWidth))
+    }));
     gameActive = true;
     animate();
 }
