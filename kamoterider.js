@@ -13,9 +13,9 @@ let carHeight = 100;
 let carSpeed = 3;
 
 let enemyCars = [];
-let enemyCarWidth = carWidth + 50;
-let enemyCarHeight = carHeight;
-let enemyCarSpeed = 3;
+let enemyCarWidth = carWidth;//100
+let enemyCarHeight = carHeight;//100
+let enemyCarSpeed = 4;
 
 let keys = {};
 let score = 0;
@@ -23,13 +23,14 @@ let gameActive = false;
 
 // Load images
 const road = new Image();
-road.src = "images/road.png";
-
+//road.src = "images/road.png";
+road.src = "images/cropRoad.png";
 const car = new Image();
 car.src = "images/Car1.png";
 
 const enemyCar = new Image();
-enemyCar.src = "images/EnemyCar.png";
+//enemyCar.src = "images/EnemyCar.png";
+enemyCar.src = "images/EnemyCar2.png";
 
 // UI Elements
 const startScreen = document.getElementById("startScreen");
@@ -66,7 +67,7 @@ function drawEnemyCars() {
 
 // Collision detection
 function detectCollision() {
-    const paddingX = 18; // Adjust horizontal collision sensitivity
+    const paddingX = 10; // Adjust horizontal collision sensitivity
     const paddingY = 0.02; // Adjust vertical collision sensitivity
 
     return enemyCars.some(enemy => (
@@ -127,8 +128,8 @@ function startGame() {
     gameOverScreen.style.display = "none";
     score = 0;
     scoreDisplay.innerText = score;
-    carX = canvas.width / 2 - carWidth / 2;
-    carY = canvas.height - 150;
+    carX = canvas.width / 2 - carWidth / 2;//400/2 = 200 - 50/2 = 175
+    carY = canvas.height - 150;//600 - 100 = 500
     roadY = 0;
     enemyCars = Array.from({ length: 5 }, () => ({
         x: Math.random() * (canvas.width - enemyCarWidth),
@@ -144,7 +145,7 @@ function startGame() {
 // Event listeners
 startButton.addEventListener("click", startGame);
 restartButton.addEventListener("click", startGame);
-
+//Control keys
 window.addEventListener("keydown", (e) => (keys[e.key.toLowerCase()] = true));
 window.addEventListener("keyup", (e) => (keys[e.key.toLowerCase()] = false));
 
