@@ -13,8 +13,8 @@ let carHeight = 100;
 let carSpeed = 3;
 
 let enemyCars = [];
-let enemyCarWidth = carWidth;//100
-let enemyCarHeight = carHeight;//100
+let enemyCarWidth = carWidth;
+let enemyCarHeight = carHeight;
 let enemyCarSpeed = 4;
 
 let keys = {};
@@ -23,13 +23,11 @@ let gameActive = false;
 
 // Load images
 const road = new Image();
-//road.src = "images/road.png";
 road.src = "images/cropRoad.png";
 const car = new Image();
-car.src = "images/Car1.png";
+car.src = "images/Motorcycle.png";
 
 const enemyCar = new Image();
-//enemyCar.src = "images/EnemyCar.png";
 enemyCar.src = "images/EnemyCar2.png";
 
 // UI Elements
@@ -50,6 +48,8 @@ function drawRoad() {
     ctx.drawImage(road, 0, roadY, canvas.width, canvas.height);
     ctx.drawImage(road, 0, roadY - canvas.height, canvas.width, canvas.height);
     roadY += roadSpeed;
+
+    //This will loop the running of road
     if (roadY >= canvas.height) {
         roadY = 0;
     }
@@ -65,10 +65,36 @@ function drawEnemyCars() {
     });
 }
 
+// Check if a new enemy car position would overlap with existing cars
+function wouldOverlap(newX, newY) {
+    const safeDistance = enemyCarWidth + 30; // Minimum distance between cars
+    
+    return enemyCars.some(enemy => {
+        const distanceX = Math.abs(newX - enemy.x);
+        const distanceY = Math.abs(newY - enemy.y);
+        return distanceX < safeDistance && distanceY < safeDistance;
+    });
+}
+
+// Generate a non-overlapping position for a new enemy car
+function generateSafePosition() {
+    let newX, newY;
+    let attempts = 0;
+    const maxAttempts = 50; // Prevent infinite loops
+    
+    do {
+        newX = Math.random() * (canvas.width - enemyCarWidth);
+        newY = Math.random() * -canvas.height;
+        attempts++;
+    } while (wouldOverlap(newX, newY) && attempts < maxAttempts);
+    
+    return { x: Math.max(0, Math.min(newX, canvas.width - enemyCarWidth)), y: newY };
+}
+
 // Collision detection
 function detectCollision() {
-    const paddingX = 10; // Adjust horizontal collision sensitivity
-    const paddingY = 0.02; // Adjust vertical collision sensitivity
+    const paddingX = 2; // Adjust horizontal collision sensitivity
+    const paddingY = 1; // Adjust vertical collision sensitivity
 
     return enemyCars.some(enemy => (
         carX + paddingX < enemy.x + enemyCarWidth - paddingX &&
@@ -77,7 +103,6 @@ function detectCollision() {
         carY + carHeight - paddingY > enemy.y
     ));
 }
-
 
 // Animation loop
 function animate() {
@@ -100,8 +125,9 @@ function animate() {
 
         // Reset enemy when it leaves the screen
         if (enemy.y > canvas.height) {
-            enemy.y = -enemyCarHeight;
-            enemy.x = Math.random() * (canvas.width - enemyCarWidth);
+            const newPosition = generateSafePosition();
+            enemy.x = newPosition.x;
+            enemy.y = newPosition.y;
             score++;
             scoreDisplay.innerText = score;
         }
@@ -128,16 +154,20 @@ function startGame() {
     gameOverScreen.style.display = "none";
     score = 0;
     scoreDisplay.innerText = score;
-    carX = canvas.width / 2 - carWidth / 2;//400/2 = 200 - 50/2 = 175
-    carY = canvas.height - 150;//600 - 100 = 500
+    carX = canvas.width / 2 - carWidth / 2;
+    carY = canvas.height - 150;
     roadY = 0;
-    enemyCars = Array.from({ length: 5 }, () => ({
-        x: Math.random() * (canvas.width - enemyCarWidth),
-        y: Math.random() * -canvas.height
-    })).map(enemy => ({
-        ...enemy,
-        x: Math.max(0, Math.min(enemy.x, canvas.width - enemyCarWidth))
-    }));
+    
+    // Create enemy cars with non-overlapping positions
+    enemyCars = [];
+    for (let i = 0; i < 5; i++) {
+        const newPosition = generateSafePosition();
+        enemyCars.push({
+            x: newPosition.x,
+            y: newPosition.y
+        });
+    }
+    
     gameActive = true;
     animate();
 }
@@ -148,4 +178,3 @@ restartButton.addEventListener("click", startGame);
 //Control keys
 window.addEventListener("keydown", (e) => (keys[e.key.toLowerCase()] = true));
 window.addEventListener("keyup", (e) => (keys[e.key.toLowerCase()] = false));
-
