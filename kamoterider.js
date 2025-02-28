@@ -15,7 +15,7 @@ let carSpeed = 3;
 let enemyCars = [];
 let enemyCarWidth = carWidth + 50;
 let enemyCarHeight = carHeight;
-let enemyCarSpeed = 2;
+let enemyCarSpeed = 3;
 
 let keys = {};
 let score = 0;
@@ -128,7 +128,7 @@ function startGame() {
     score = 0;
     scoreDisplay.innerText = score;
     carX = canvas.width / 2 - carWidth / 2;
-    carY = canvas.height - 50;
+    carY = canvas.height - 150;
     roadY = 0;
     enemyCars = Array.from({ length: 5 }, () => ({
         x: Math.random() * (canvas.width - enemyCarWidth),
@@ -145,5 +145,6 @@ function startGame() {
 startButton.addEventListener("click", startGame);
 restartButton.addEventListener("click", startGame);
 
-window.addEventListener("keydown", (e) => (keys[e.key] = true));
-window.addEventListener("keyup", (e) => (keys[e.key] = false));
+window.addEventListener("keydown", (e) => (keys[e.key.toLowerCase()] = true));
+window.addEventListener("keyup", (e) => (keys[e.key.toLowerCase()] = false));
+
