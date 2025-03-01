@@ -1,30 +1,51 @@
 <!DOCTYPE html>
 <html lang="en">    
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kamote Rider</title>
-
-    <link rel="stylesheet" href="kamoterider.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Kamote Rider</title>
+  <!-- Google Fonts for a modern look -->
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="kamoterider.css">
 </head>
 <body>
 
-    <div id="startScreen">
-        <h1>🚘 Kamote Rider</h1>
-        <button id="startButton">Start Game</button>
-    </div>
+  <!-- Start Screen -->
+  <div id="startScreen" class="screen">
+      <h1 class="logo">🚘</h1>
+      <h1 class="title">Kamote Rider</h1>
+      <button id="startButton">Start Game</button>
+  </div>
 
-    <div class="wrapper">
-        <div id="scoreBox">Score: <span id="score">0</span></div>
-        <canvas id="gameCanvas"></canvas>
+  <!-- Game Canvas, Controls & Score -->
+  <div class="wrapper">
+    <div class="game-container">
+      <canvas id="gameCanvas" width="400" height="600"></canvas>
+      <!-- Game Over Screen overlay -->
+      <div id="gameOverScreen" class="screen hidden">
+          <h2>Game Over!</h2>
+          <p>Your Score: <span id="finalScore">0</span></p>
+          <button id="restartButton">Restart</button>
+      </div>
+      <!-- Floating controls panel -->
+      <div id="controls">
+          <h3>Game Controls</h3>
+          <div class="control-buttons">
+            <button class="control-btn" id="upBtn">W</button>
+            <div class="horizontal-controls">
+              <button class="control-btn" id="leftBtn">A</button>
+              <button class="control-btn" id="downBtn">S</button>
+              <button class="control-btn" id="rightBtn">D</button>
+            </div>
+          </div>
+      </div>
     </div>
-
-    <div id="gameOverScreen">
-        <h2>Game Over!</h2>
-        <p>Your Score: <span id="finalScore">0</span></p>
-        <button id="restartButton">Restart</button>
+    <div id="scoreBox">
+        Score: <span id="score">0</span><br>
+        High Score: <span id="highScoreDisplay">0</span>
     </div>
+  </div>  
 
-    <script src="kamoterider.js"></script>
+  <script src="kamoterider.js"></script>
 </body>
 </html>

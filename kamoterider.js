@@ -26,7 +26,6 @@ const road = new Image();
 road.src = "images/cropRoad.png";
 const car = new Image();
 car.src = "images/Motorcycle.png";
-
 const enemyCar = new Image();
 enemyCar.src = "images/EnemyCar2.png";
 
@@ -49,7 +48,7 @@ function drawRoad() {
     ctx.drawImage(road, 0, roadY - canvas.height, canvas.width, canvas.height);
     roadY += roadSpeed;
 
-    //This will loop the running of road
+    // Loop the road image
     if (roadY >= canvas.height) {
         roadY = 0;
     }
@@ -113,6 +112,10 @@ function animate() {
     drawCar();
     drawEnemyCars();
 
+    // Increase the score continuously
+    score += 0.1; // Adjust this value to control scoring speed
+    scoreDisplay.innerText = Math.floor(score);
+
     // Move player
     if (keys['w'] && carY > 0) carY -= carSpeed;
     if (keys['s'] && carY < canvas.height - carHeight) carY += carSpeed;
@@ -128,13 +131,14 @@ function animate() {
             const newPosition = generateSafePosition();
             enemy.x = newPosition.x;
             enemy.y = newPosition.y;
-            score++;
-            scoreDisplay.innerText = score;
+            // Optionally, you can give a bonus score here if desired.
         }
     });
 
     // Collision detection
     if (detectCollision()) {
+        // Before ending the game, update the high score
+        updateHighScore(Math.floor(score));
         gameOver();
     }
 
@@ -145,13 +149,13 @@ function animate() {
 function gameOver() {
     gameActive = false;
     gameOverScreen.style.display = "block";
-    finalScore.innerText = score;
+    finalScore.innerText = Math.floor(score);
 }
 
 // Start game function
 function startGame() {
-    startScreen.style.display = "none";
-    gameOverScreen.style.display = "none";
+    startScreen.classList.add("hidden");
+    gameOverScreen.classList.add("hidden");
     score = 0;
     scoreDisplay.innerText = score;
     carX = canvas.width / 2 - carWidth / 2;
@@ -172,9 +176,53 @@ function startGame() {
     animate();
 }
 
+function gameOver() {
+    gameActive = false;
+    // Remove the "hidden" class to show the game over screen
+    gameOverScreen.classList.remove("hidden");
+    finalScore.innerText = Math.floor(score);
+}
+
+// Update high score using localStorage
+function updateHighScore(currentScore) {
+    let highScore = localStorage.getItem('highScore');
+    highScore = highScore ? parseInt(highScore) : 0;
+    
+    if (currentScore > highScore) {
+        localStorage.setItem('highScore', currentScore);
+        highScore = currentScore;
+    }
+    
+    // Update the high score display (make sure an element with id 'highScoreDisplay' exists in your HTML)
+    document.getElementById('highScoreDisplay').innerText = highScore;
+}
+
+function loadHighScore() {
+    let highScore = localStorage.getItem('highScore');
+    return highScore ? parseInt(highScore) : 0;
+}
+
 // Event listeners
 startButton.addEventListener("click", startGame);
 restartButton.addEventListener("click", startGame);
-//Control keys
 window.addEventListener("keydown", (e) => (keys[e.key.toLowerCase()] = true));
 window.addEventListener("keyup", (e) => (keys[e.key.toLowerCase()] = false));
+
+
+document.getElementById('upBtn').addEventListener('click', () => {
+    keys['w'] = true;
+    setTimeout(() => keys['w'] = false, 150);
+  });
+  document.getElementById('downBtn').addEventListener('click', () => {
+    keys['s'] = true;
+    setTimeout(() => keys['s'] = false, 150);
+  });
+  document.getElementById('leftBtn').addEventListener('click', () => {
+    keys['a'] = true;
+    setTimeout(() => keys['a'] = false, 150);
+  });
+  document.getElementById('rightBtn').addEventListener('click', () => {
+    keys['d'] = true;
+    setTimeout(() => keys['d'] = false, 150);
+  });
+  
