@@ -6,7 +6,7 @@ canvas.width = 400;
 canvas.height = 600;
 
 // Trap Game Variables
-const HIGH_SCORE_THRESHOLD = 200;
+const HIGH_SCORE_THRESHOLD = 100;
 const SPECIAL_BEHAVIOR_CHANCE = 0.3; // 30% chance for special behavior
 const SPEED_BOOST_MULTIPLIER = 1.5;
 const SIDE_MOVE_SPEED = 2;
@@ -15,19 +15,17 @@ const SIDE_MOVE_SPEED = 2;
 let baseEnemySpeed = 4;
 let baseRoadSpeed = 2;
 let difficultyInterval = 500; // Increase difficulty every 500 points
-let nextDifficultyThreshold = difficultyInterval;
 
-// Update vehicle dimensions in the game variables section
-let carX = canvas.width / 2 - 15;  // Centered position for new width
-let carY = canvas.height - 70;      // Adjusted vertical position
+// Vehicle dimensions and player position
 let carWidth = 30;                  // Narrow motorcycle width
 let carHeight = 60;                 // Shorter motorcycle height
+let carX = canvas.width / 2 - carWidth / 2;  // Centered horizontally
+let carY = canvas.height - 70;      // Adjusted vertical position
 let carSpeed = 3;
 
 let enemyCars = [];
 let enemyCarWidth = 50;             // Wider car width
 let enemyCarHeight = 100;           // Taller car height
-let enemyCarSpeed = 4;
 
 let keys = {};
 let score = 0;
@@ -52,15 +50,51 @@ const restartButton = document.getElementById("restartButton");
 
 // Road background variables
 let roadY = 0;
-let roadSpeed = 2;
+let roadSpeed = baseRoadSpeed;
+
+// Lane definitions and spacing
+const LANES = [40, 125, 220, 310]; // X positions for lanes
+const MIN_VERTICAL_DISTANCE = 200; // Minimum vertical space between enemy cars
+
+// Unified overlap-check function (checks for same lane and vertical spacing)
+function wouldOverlap(newX, newY) {
+    const laneIndex = LANES.indexOf(newX);
+    if (laneIndex === -1) return false;
+    return enemyCars.some(enemy => {
+        // If the enemy is lane changing and nearly aligned with the target, use target lane
+        let enemyLane = enemy.lane;
+        if (enemy.behavior === 'laneChange' && Math.abs(enemy.x - LANES[enemy.targetLane]) < SIDE_MOVE_SPEED) {
+            enemyLane = enemy.targetLane;
+        }
+        if (enemyLane === laneIndex) {
+            return Math.abs(newY - enemy.y) < MIN_VERTICAL_DISTANCE;
+        }
+        return false;
+    });
+}
+
+// Generate a safe position for an enemy car to avoid overlapping
+function generateSafePosition() {
+    let attempts = 0;
+    const maxAttempts = 50;
+    let newX, newY;
+    do {
+        // Select a random lane
+        const laneIndex = Math.floor(Math.random() * LANES.length);
+        newX = LANES[laneIndex];
+        // Position the enemy off-screen above with some randomness
+        newY = Math.random() * -canvas.height - 200;
+        attempts++;
+    } while (wouldOverlap(newX, newY) && attempts < maxAttempts);
+
+    return { x: newX, y: newY, lane: LANES.indexOf(newX) };
+}
 
 // Draw functions
 function drawRoad() {
     ctx.drawImage(road, 0, roadY, canvas.width, canvas.height);
     ctx.drawImage(road, 0, roadY - canvas.height, canvas.width, canvas.height);
     roadY += roadSpeed;
-
-    // Loop the road image
     if (roadY >= canvas.height) {
         roadY = 0;
     }
@@ -76,31 +110,25 @@ function drawEnemyCars() {
     });
 }
 
-// Modify the updateDifficulty function
+// Update enemy difficulty and special behavior
 function updateDifficulty(currentScore) {
-    // Difficulty scaling
     if (currentScore >= HIGH_SCORE_THRESHOLD) {
         enemyCars.forEach(enemy => {
-            if (Math.random() < SPECIAL_BEHAVIOR_CHANCE && enemy.behavior === 'normal') {
-                // Determine available lanes
-                const possibleLanes = [];
-                if (enemy.lane > 0) possibleLanes.push(enemy.lane - 1);
-                if (enemy.lane < LANES.length - 1) possibleLanes.push(enemy.lane + 1);
-                
-                if (possibleLanes.length > 0) {
-                    enemy.behavior = 'laneChange';
-                    enemy.targetLane = possibleLanes[Math.floor(Math.random() * possibleLanes.length)];
-                }
-            }
-        });
-    }
-
-    // Special behaviors (independent of difficulty interval)
-    if (currentScore >= HIGH_SCORE_THRESHOLD) {
-        enemyCars.forEach(enemy => {
-            if (Math.random() < SPECIAL_BEHAVIOR_CHANCE && enemy.behavior === 'normal') {
-                enemy.behavior = Math.random() < 0.5 ? 'speedBoost' : 'laneChange';
-                if (enemy.behavior === 'speedBoost') {
+            if (enemy.behavior === 'normal' && Math.random() < SPECIAL_BEHAVIOR_CHANCE) {
+                // Randomly decide between lane change and speed boost
+                if (Math.random() < 0.5) {
+                    // Lane change: choose any lane different from the current one
+                    const currentLaneIndex = enemy.lane;
+                    const possibleLanes = LANES
+                        .map((pos, index) => index)
+                        .filter(index => index !== currentLaneIndex);
+                    if (possibleLanes.length > 0) {
+                        enemy.behavior = 'laneChange';
+                        enemy.targetLane = possibleLanes[Math.floor(Math.random() * possibleLanes.length)];
+                    }
+                } else {
+                    // Speed boost
+                    enemy.behavior = 'speedBoost';
                     enemy.speed = baseEnemySpeed * SPEED_BOOST_MULTIPLIER;
                 }
             }
@@ -108,66 +136,10 @@ function updateDifficulty(currentScore) {
     }
 }
 
-// Add lane definitions at the top
-const LANES = [40, 125, 220, 310]; // X positions for 3 lanes
-const MIN_VERTICAL_DISTANCE = 200; // Minimum space between cars in same lane
-
-// Check if a new enemy car position would overlap with existing cars
-function wouldOverlap(newX, newY) {
-    return enemyCars.some(enemy => {
-        // Check vertical distance regardless of lane
-        return Math.abs(newY - enemy.y) < MIN_VERTICAL_DISTANCE;
-    });
-}
-
-// Modified generateSafePosition function
-function generateSafePosition() {
-    let attempts = 0;
-    const maxAttempts = 50;
-    let newX, newY;
-
-    do {
-        // Select random lane and position
-        newX = LANES[Math.floor(Math.random() * LANES.length)];
-        newY = Math.random() * -canvas.height - 200; // Start higher above canvas
-        
-        attempts++;
-    } while (wouldOverlap(newX, newY) && attempts < maxAttempts);
-
-    // Fallback position if all attempts fail
-    return { 
-        x: newX,
-        y: Math.min(newY, -MIN_VERTICAL_DISTANCE) // Ensure minimum spacing
-    };
-}
-
-// Modified wouldOverlap function
-function wouldOverlap(newX, newY) {
-    return enemyCars.some(enemy => {
-        // Check if same lane and vertical proximity
-        return enemy.x === newX && 
-               Math.abs(newY - enemy.y) < MIN_VERTICAL_DISTANCE;
-    });
-}
-
-// Modified enemy car reset in animate function
-enemyCars.forEach(enemy => {
-    enemy.y += enemyCarSpeed;
-
-    if (enemy.y > canvas.height) {
-        const newPosition = generateSafePosition();
-        enemy.x = newPosition.x;
-        enemy.y = newPosition.y;
-    }
-});
-
-// Collision detection
+// Collision detection between the player and enemy cars
 function detectCollision() {
-    
-    // Use motorcycle's smaller dimensions for collision check
-    const paddingX = 4;  // Reduced horizontal collision area
-    const paddingY = 5;  // Reduced vertical collision area
-
+    const paddingX = 4;
+    const paddingY = 5;
     return enemyCars.some(enemy => (
         carX + paddingX < enemy.x + enemyCarWidth - paddingX &&
         carX + carWidth - paddingX > enemy.x + paddingX &&
@@ -176,7 +148,25 @@ function detectCollision() {
     ));
 }
 
-// Animation loop
+// After updating enemy positions, adjust any that are too close in the same lane
+function resolveEnemyOverlaps() {
+    enemyCars.forEach((enemy, i) => {
+        enemyCars.forEach((other, j) => {
+            if (i !== j && enemy.lane === other.lane) {
+                if (Math.abs(enemy.y - other.y) < MIN_VERTICAL_DISTANCE) {
+                    // Push the lower enemy further down to ensure proper spacing
+                    if (enemy.y > other.y) {
+                        enemy.y = other.y + MIN_VERTICAL_DISTANCE;
+                    } else {
+                        other.y = enemy.y + MIN_VERTICAL_DISTANCE;
+                    }
+                }
+            }
+        });
+    });
+}
+
+// Main animation loop
 function animate() {
     if (!gameActive) return;
 
@@ -190,48 +180,46 @@ function animate() {
     scoreDisplay.innerText = Math.floor(score);
     updateDifficulty(score);
 
-    // Move player
+    // Player movement with keyboard input
     if (keys['w'] && carY > 0) carY -= carSpeed;
     if (keys['s'] && carY < canvas.height - carHeight) carY += carSpeed;
     if (keys['a'] && carX > 0) carX -= carSpeed;
     if (keys['d'] && carX < canvas.width - carWidth) carX += carSpeed;
 
-    // Update enemy movement
+    // Update enemy cars
     enemyCars.forEach(enemy => {
-        // Vertical movement with current speed
-        enemy.y += enemy.speed;
-        
-        // Lane changing logic
+        // Vertical movement (use enemy.speed if set, else baseEnemySpeed)
+        enemy.y += enemy.speed || baseEnemySpeed;
+
+        // Handle lane-changing behavior
         if (enemy.behavior === 'laneChange') {
-            // Calculate target position based on lane
             const targetX = LANES[enemy.targetLane];
             const direction = targetX > enemy.x ? 1 : -1;
-            
-            // Move horizontally
             enemy.x += SIDE_MOVE_SPEED * direction;
-            
-            // Snap to lane and reset behavior when reached
             if (Math.abs(enemy.x - targetX) < SIDE_MOVE_SPEED) {
                 enemy.x = targetX;
                 enemy.lane = enemy.targetLane;
                 enemy.behavior = 'normal';
+                enemy.speed = baseEnemySpeed; // Reset speed if it was boosted
             }
         }
 
-        // Reset when off screen
+        // Reset enemy if it goes off-screen
         if (enemy.y > canvas.height) {
             const newPosition = generateSafePosition();
             enemy.x = newPosition.x;
             enemy.y = newPosition.y;
             enemy.speed = baseEnemySpeed;
             enemy.behavior = 'normal';
-            enemy.lane = LANES.indexOf(newPosition.x);
+            enemy.lane = newPosition.lane;
         }
     });
 
-    // Collision detection
+    // Resolve any overlapping enemy cars after movement
+    resolveEnemyOverlaps();
+
+    // Check for collision with player's car
     if (detectCollision()) {
-        // Before ending the game, update the high score
         updateHighScore(Math.floor(score));
         gameOver();
     }
@@ -242,7 +230,7 @@ function animate() {
 // Game over function
 function gameOver() {
     gameActive = false;
-    gameOverScreen.style.display = "block";
+    gameOverScreen.classList.remove("hidden");
     finalScore.innerText = Math.floor(score);
 }
 
@@ -256,16 +244,9 @@ function startGame() {
     carY = canvas.height - 150;
     roadY = 0;
 
-    // Reset difficulty parameters
-    enemyCarSpeed = baseEnemySpeed;
-    roadSpeed = baseRoadSpeed;
-    nextDifficultyThreshold = difficultyInterval;
-    
-    // Create enemy cars with non-overlapping positions
+    // Reset enemy cars array and initialize them with safe spacing
     enemyCars = [];
-    let currentY = -MIN_VERTICAL_DISTANCE * 2; // Start position
-
-    // Modify enemy initialization in startGame
+    let currentY = -MIN_VERTICAL_DISTANCE * 2;
     for (let i = 0; i < 5; i++) {
         const laneIndex = Math.floor(Math.random() * LANES.length);
         const newEnemy = {
@@ -279,29 +260,19 @@ function startGame() {
         enemyCars.push(newEnemy);
         currentY -= MIN_VERTICAL_DISTANCE + 100;
     }
-    
+
     gameActive = true;
     animate();
-}
-
-function gameOver() {
-    gameActive = false;
-    // Remove the "hidden" class to show the game over screen
-    gameOverScreen.classList.remove("hidden");
-    finalScore.innerText = Math.floor(score);
 }
 
 // Update high score using localStorage
 function updateHighScore(currentScore) {
     let highScore = localStorage.getItem('highScore');
     highScore = highScore ? parseInt(highScore) : 0;
-    
     if (currentScore > highScore) {
         localStorage.setItem('highScore', currentScore);
         highScore = currentScore;
     }
-    
-    // Update the high score display (make sure an element with id 'highScoreDisplay' exists in your HTML)
     document.getElementById('highScoreDisplay').innerText = highScore;
 }
 
@@ -313,24 +284,23 @@ function loadHighScore() {
 // Event listeners
 startButton.addEventListener("click", startGame);
 restartButton.addEventListener("click", startGame);
-window.addEventListener("keydown", (e) => (keys[e.key.toLowerCase()] = true));
-window.addEventListener("keyup", (e) => (keys[e.key.toLowerCase()] = false));
+window.addEventListener("keydown", (e) => { keys[e.key.toLowerCase()] = true; });
+window.addEventListener("keyup", (e) => { keys[e.key.toLowerCase()] = false; });
 
-
+// Mobile control buttons
 document.getElementById('upBtn').addEventListener('click', () => {
     keys['w'] = true;
     setTimeout(() => keys['w'] = false, 150);
-  });
-  document.getElementById('downBtn').addEventListener('click', () => {
+});
+document.getElementById('downBtn').addEventListener('click', () => {
     keys['s'] = true;
     setTimeout(() => keys['s'] = false, 150);
-  });
-  document.getElementById('leftBtn').addEventListener('click', () => {
+});
+document.getElementById('leftBtn').addEventListener('click', () => {
     keys['a'] = true;
     setTimeout(() => keys['a'] = false, 150);
-  });
-  document.getElementById('rightBtn').addEventListener('click', () => {
+});
+document.getElementById('rightBtn').addEventListener('click', () => {
     keys['d'] = true;
     setTimeout(() => keys['d'] = false, 150);
-  });
-  
+});
