@@ -54,7 +54,7 @@ let roadSpeed = baseRoadSpeed;
 
 // Lane definitions and spacing
 const LANES = [40, 125, 220, 310]; // X positions for lanes
-const MIN_VERTICAL_DISTANCE = 200; // Minimum vertical space between enemy cars
+const MIN_VERTICAL_DISTANCE = 300; // Minimum vertical space between enemy cars
 
 // Unified overlap-check function (checks for same lane and vertical spacing)
 function wouldOverlap(newX, newY) {
