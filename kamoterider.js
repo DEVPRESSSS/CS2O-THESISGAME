@@ -118,6 +118,7 @@ function drawEnemyCars() {
 }
 
 // Update enemy difficulty and special behavior
+// Update enemy difficulty and special behavior
 function updateDifficulty(currentScore) {
     if (currentScore >= HIGH_SCORE_THRESHOLD) {
         enemyCars.forEach(enemy => {
@@ -129,9 +130,26 @@ function updateDifficulty(currentScore) {
                     const possibleLanes = LANES
                         .map((pos, index) => index)
                         .filter(index => index !== currentLaneIndex);
-                    if (possibleLanes.length > 0) {
+                    
+                    // Check if any lane is safe to change to
+                    const safeLanes = possibleLanes.filter(laneIndex => {
+                        // Check if any car is too close in the target lane
+                        return !enemyCars.some(otherCar => 
+                            otherCar !== enemy && 
+                            (otherCar.lane === laneIndex || 
+                             (otherCar.behavior === 'laneChange' && otherCar.targetLane === laneIndex)) &&
+                            Math.abs(otherCar.y - enemy.y) < MIN_VERTICAL_DISTANCE
+                        );
+                    });
+                    
+                    // Only change lane if there's a safe lane to change to
+                    if (safeLanes.length > 0) {
                         enemy.behavior = 'laneChange';
-                        enemy.targetLane = possibleLanes[Math.floor(Math.random() * possibleLanes.length)];
+                        enemy.targetLane = safeLanes[Math.floor(Math.random() * safeLanes.length)];
+                    } else {
+                        // If no safe lane, give speed boost instead
+                        enemy.behavior = 'speedBoost';
+                        enemy.speed = baseEnemySpeed * SPEED_BOOST_MULTIPLIER;
                     }
                 } else {
                     // Speed boost
@@ -141,7 +159,6 @@ function updateDifficulty(currentScore) {
             }
         });
         resolveEnemyOverlaps();
-
     }
 }
 
@@ -158,11 +175,23 @@ function detectCollision() {
 }
 
 // After updating enemy positions, adjust any that are too close in the same lane
+// After updating enemy positions, adjust any that are too close in the same lane
 function resolveEnemyOverlaps() {
     enemyCars.forEach((enemy, i) => {
         enemyCars.forEach((other, j) => {
-            if (i !== j && enemy.lane === other.lane) {
-                if (Math.abs(enemy.y - other.y) < MIN_VERTICAL_DISTANCE) {
+            if (i !== j) {
+                // Check if they're in the same lane or if one is changing to the other's lane
+                const sameOrTargetLane = 
+                    (enemy.lane === other.lane) || 
+                    (enemy.behavior === 'laneChange' && enemy.targetLane === other.lane) ||
+                    (other.behavior === 'laneChange' && other.targetLane === enemy.lane);
+                
+                // Calculate horizontal distance to handle cars that are transitioning between lanes
+                const horizontalDistance = Math.abs(enemy.x - other.x);
+                const areClose = horizontalDistance < enemyCarWidth;
+                
+                // If they're in the same/target lane or horizontally close, and vertically too close
+                if ((sameOrTargetLane || areClose) && Math.abs(enemy.y - other.y) < MIN_VERTICAL_DISTANCE) {
                     // Push the lower enemy further down to ensure proper spacing
                     if (enemy.y > other.y) {
                         enemy.y = other.y + MIN_VERTICAL_DISTANCE;
@@ -203,6 +232,7 @@ function animate() {
 
         // Handle lane-changing behavior
         if (enemy.behavior === 'laneChange') {
+
             const targetX = LANES[enemy.targetLane];
             const direction = targetX > enemy.x ? 1 : -1;
             enemy.x += SIDE_MOVE_SPEED * direction;
