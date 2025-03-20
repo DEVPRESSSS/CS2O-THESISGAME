@@ -53,13 +53,16 @@ let roadY = 0;
 let roadSpeed = baseRoadSpeed;
 
 // Lane definitions and spacing
-const LANES = [40, 125, 220, 310]; // X positions for lanes
+const LANES = [40, 125, 250, 310]; // X positions for lanes
 const MIN_VERTICAL_DISTANCE = 200; // Minimum vertical space between enemy cars
 
 // Unified overlap-check function (checks for same lane and vertical spacing)
 function wouldOverlap(newX, newY) {
     const laneIndex = LANES.indexOf(newX);
-    if (laneIndex === -1) return false;
+    if (laneIndex === -1){
+
+        return false;
+    };
     return enemyCars.some(enemy => {
         // If the enemy is lane changing and nearly aligned with the target, use target lane
         let enemyLane = enemy.lane;
@@ -100,10 +103,14 @@ function drawRoad() {
     }
 }
 
+
+//Draw the player's motorbike
 function drawCar() {
     ctx.drawImage(car, carX, carY, carWidth, carHeight);
 }
 
+
+// Draw enemy cars
 function drawEnemyCars() {
     enemyCars.forEach(enemy => {
         ctx.drawImage(enemyCar, enemy.x, enemy.y, enemyCarWidth, enemyCarHeight);
@@ -133,6 +140,8 @@ function updateDifficulty(currentScore) {
                 }
             }
         });
+        resolveEnemyOverlaps();
+
     }
 }
 
@@ -183,8 +192,9 @@ function animate() {
     // Player movement with keyboard input
     if (keys['w'] && carY > 0) carY -= carSpeed;
     if (keys['s'] && carY < canvas.height - carHeight) carY += carSpeed;
-    if (keys['a'] && carX > 0) carX -= carSpeed;
-    if (keys['d'] && carX < canvas.width - carWidth) carX += carSpeed;
+    if (keys['a'] && carX > LANES[0]) carX -= carSpeed; 
+    if (keys['d'] && carX < LANES[LANES.length -1] + carWidth) carX += carSpeed; 
+
 
     // Update enemy cars
     enemyCars.forEach(enemy => {
@@ -278,7 +288,7 @@ function updateHighScore(currentScore) {
 
 function loadHighScore() {
     let highScore = localStorage.getItem('highScore');
-    return highScore ? parseInt(highScore) : 0;
+    return highScore ? (highScore) : 0;
 }
 
 // Event listeners
