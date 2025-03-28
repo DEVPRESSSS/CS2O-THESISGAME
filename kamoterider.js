@@ -75,9 +75,16 @@ enemyCar.src = "images/EnemyCar2.png";
 // For continuous background music, enable looping
 bgMusic.loop = true;
 
-//Start the BgMusic when the page loads
-bgMusic.currentTime = 0;
-bgMusic.play();
+// For sound effects, set volume to 100%
+crashSound.volume = 0.3; // Set volume to 100%
+engineStart.volume = 0.2; // Set volume to 100%
+speedBoostSound.volume = 1.0; // Set volume to 100%
+newScore.volume = 1.0; // Set volume to 100%
+
+// For the background music, set volume to 50%
+bgMusic.volume = 0.1; // Set volume to 50%
+
+
 
 // UI Elements
 const startScreen = document.getElementById("startScreen");
@@ -291,6 +298,11 @@ function animate() {
     // Update score and difficulty
     score += 0.1;
     scoreDisplay.innerText = Math.floor(score);
+
+    // Update live high score display and check if we need to play newScore sound
+    updateLiveHighScore(Math.floor(score));
+
+    // Update enemy difficulty
     updateDifficulty(score);
 
     // Player movement with speed boost sound handling
@@ -438,13 +450,13 @@ function startGame() {
         currentY -= MIN_VERTICAL_DISTANCE + 100;
     }
 
+    // Stop background music properly
+    bgMusic.pause();
+
     // Start engine sound and pause background music
     engineStart.currentTime = 0;
     engineStart.play();
     
-    bgMusic.pause();
-    bgMusic.currentTime = 0;
-
     // Reset the high score flag for new game runs
     highScoreSurpassed = false;
 
@@ -455,11 +467,24 @@ function startGame() {
 // Live high score functions
 let highScoreSurpassed = false;
 
+// Start bgMusic on page load (if allowed by browser)
+document.addEventListener('DOMContentLoaded', () => {
+    // Initialize high score display
+    initializeHighScoreDisplay();
+    
+    // Prepare audio elements
+    bgMusic.currentTime = 0;
+    bgMusic.play();
+});
+
+function initializeHighScoreDisplay() {
+    document.getElementById('highScoreDisplay').innerText = loadHighScore();
+}
 
 // Load high score from localStorage
 function loadHighScore() {
     let highScore = localStorage.getItem('highScore');
-    return highScore ? (highScore) : 0;
+    return highScore ? parseInt(highScore) : 0;  // Parse to number
 }
 
 // Update live high score display
@@ -488,16 +513,10 @@ function updateHighScore(currentScore) {
 // Save high score to localStorage
 function saveHighScore(finalScore) {
     const storedHighScore = loadHighScore();
-    if (finalScore > storedHighScore) {
+    if (parseInt(finalScore) > storedHighScore) {  // Ensure numeric comparison
         localStorage.setItem('highScore', finalScore);
     }
 }
-
-// Start bgMusic on page load (if allowed by browser)
-window.addEventListener('load', () => {
-    bgMusic.currentTime = 0;
-    bgMusic.play();
-});
 
 // Event listeners
 startButton.addEventListener("click", startGame);
