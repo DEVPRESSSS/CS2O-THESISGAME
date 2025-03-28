@@ -63,6 +63,10 @@ const road = new Image();
 road.src = "Images/cropRoad.png";
 
 
+
+
+
+
 //load the player's motorbike a
 const car = new Image();
 car.src = "Images/Motorcycle.png";
