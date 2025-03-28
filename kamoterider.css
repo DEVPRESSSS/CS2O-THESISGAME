@@ -8,8 +8,7 @@
     --accent-color: #FFA726;
     --shadow-color: rgba(0, 0, 0, 0.4);
     --border-radius: 16px;
-    --neumorphic-shadow: 8px 8px 16px #0d0d0d, 
-                        -8px -8px 16px #1f1f1f;
+    --neumorphic-shadow: 8px 8px 16px #0d0d0d, -8px -8px 16px #1f1f1f;
 }
 
 * {
@@ -45,8 +44,8 @@ body {
 /* Game container holds the canvas and overlay */
 .game-container {
     position: relative;
-    width: 400px;  /* Matches your JS canvas width */
-    height: 600px;
+    width: 400px;  /* Base width */
+    height: 600px; /* Base height */
     margin: 0 auto;
 }
 
@@ -60,10 +59,10 @@ canvas {
     border: 1px solid rgba(255,255,255,0.1);
 }
 
-/* Floating controls panel positioned to the right of the canvas */
+/* Floating controls panel for desktops */
 #controls {
     position: absolute;
-    right: -220px; /* Adjust this value as needed */
+    right: -220px;
     top: 50%;
     transform: translateY(-50%);
     width: 200px;
@@ -127,7 +126,7 @@ canvas {
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    z-index: 10; /* Ensures it overlays the canvas */
+    z-index: 10;
     opacity: 1;
     transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
     backdrop-filter: blur(12px);
@@ -179,12 +178,7 @@ button::before {
     left: -100%;
     width: 100%;
     height: 100%;
-    background: linear-gradient(
-        120deg,
-        transparent,
-        rgba(255,255,255,0.2),
-        transparent
-    );
+    background: linear-gradient(120deg, transparent, rgba(255,255,255,0.2), transparent);
     transition: 0.5s;
 }
 
@@ -257,6 +251,20 @@ button:hover {
         padding: 1rem;
     }
     
+    /* Make game container responsive */
+    .game-container {
+        width: 100%;
+        max-width: 400px; /* Ensures it doesn't exceed original size */
+        height: auto;
+    }
+    
+    /* Responsive canvas */
+    canvas {
+        width: 100%;
+        height: auto;
+    }
+    
+    /* Adjust controls to show below the canvas */
     #controls {
         position: static;
         transform: none;
