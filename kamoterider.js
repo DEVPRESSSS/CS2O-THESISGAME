@@ -7,10 +7,15 @@ const ctx = canvas.getContext('2d');
 canvas.width = 400;
 canvas.height = 600;
 
+// Load sound effects and music
+const crashSound = new Audio('Sounds/explosion.wav');
+const speedBoostSound = new Audio('Sounds/speeding.wav');
+const engineStart = new Audio('Sounds/startEngine.wav');
+const newScore = new Audio('Sounds/newscore.wav');
+const bgMusic = new Audio('Sounds/bgmusic.mp3');
+
 // Trap Game Variables
 const HIGH_SCORE_THRESHOLD = 100;
-
-//
 const SPECIAL_BEHAVIOR_CHANCE = 0.3; 
 const SPEED_BOOST_MULTIPLIER = 1.5;
 const SIDE_MOVE_SPEED = 2;
@@ -67,7 +72,12 @@ car.src = "images/Motorcycle.png";
 const enemyCar = new Image();
 enemyCar.src = "images/EnemyCar2.png";
 
+// For continuous background music, enable looping
+bgMusic.loop = true;
 
+//Start the BgMusic when the page loads
+bgMusic.currentTime = 0;
+bgMusic.play();
 
 // UI Elements
 const startScreen = document.getElementById("startScreen");
@@ -283,8 +293,20 @@ function animate() {
     scoreDisplay.innerText = Math.floor(score);
     updateDifficulty(score);
 
-    // Player movement with keyboard input
-    if (keys['w'] && carY > 0) carY -= carSpeed;
+    // Player movement with speed boost sound handling
+    speedBoostSound.loop = true;
+    if (keys['w'] && carY > 0) {
+        carY -= carSpeed;
+        if (speedBoostSound.paused) {
+            speedBoostSound.currentTime = 0;
+            speedBoostSound.play();
+        }
+    } else {
+        if (!keys['w'] && !speedBoostSound.paused) {
+            speedBoostSound.pause();
+            speedBoostSound.currentTime = 0;
+        }
+    }
 
     if (keys['s'] && carY < canvas.height - carHeight) carY += carSpeed;
 
@@ -334,8 +356,16 @@ function animate() {
     // Check for collision with player's car
     if (detectCollision()) {
         updateHighScore(Math.floor(score));
+
+        // Play crash sound and stop speed boost sound
+        crashSound.currentTime = 0;
+        crashSound.play();
+        if (!speedBoostSound.paused) {
+            speedBoostSound.pause();
+            speedBoostSound.currentTime = 0;
+        }
         gameOver();
-    }
+    } 
 
     requestAnimationFrame(animate);
 }
@@ -348,8 +378,12 @@ function gameOver() {
     gameActive = false;
     gameOverScreen.classList.remove("hidden");
     finalScore.innerText = Math.floor(score);
+    saveHighScore(Math.floor(score));
+    
+    // Start the background music when the game ends
+    bgMusic.currentTime = 0;
+    bgMusic.play();
 }
-
 
 
 
@@ -404,56 +438,66 @@ function startGame() {
         currentY -= MIN_VERTICAL_DISTANCE + 100;
     }
 
+    // Start engine sound and pause background music
+    engineStart.currentTime = 0;
+    engineStart.play();
+    
+    bgMusic.pause();
+    bgMusic.currentTime = 0;
+
+    // Reset the high score flag for new game runs
+    highScoreSurpassed = false;
+
     gameActive = true;
     animate();
 }
 
+// Live high score functions
+let highScoreSurpassed = false;
 
 
-
-
-
-// Update high score using localStorage
-function updateHighScore(currentScore) {
-    
-    
-    
-    let highScore = localStorage.getItem('highScore');
-
-    highScore = highScore ? parseInt(highScore) : 0;
-
-    if (currentScore > highScore) {
-        localStorage.setItem('highScore', currentScore);
-        highScore = currentScore;
-    }
-
-    document.getElementById('highScoreDisplay').innerText = highScore;
-}
-
-
-
-
+// Load high score from localStorage
 function loadHighScore() {
     let highScore = localStorage.getItem('highScore');
     return highScore ? (highScore) : 0;
 }
 
+// Update live high score display
+function updateLiveHighScore(currentScore) {
+    const storedHighScore = loadHighScore();
+    const liveHighScore = currentScore > storedHighScore ? currentScore : storedHighScore;
+    document.getElementById('highScoreDisplay').innerText = liveHighScore;
+    
+    if (currentScore > storedHighScore && !highScoreSurpassed) {
+        highScoreSurpassed = true;
+        newScore.currentTime = 0;
+        newScore.play();
+    }
+}
 
 
+// Update high score using localStorage
+function updateHighScore(currentScore) {
+    let highScore = loadHighScore();
+    if (currentScore > highScore) {
+        localStorage.setItem('highScore', currentScore);
+    }
+    document.getElementById('highScoreDisplay').innerText = loadHighScore();
+}
 
+// Save high score to localStorage
+function saveHighScore(finalScore) {
+    const storedHighScore = loadHighScore();
+    if (finalScore > storedHighScore) {
+        localStorage.setItem('highScore', finalScore);
+    }
+}
 
-
-
-
-
-
-
-
-
-
-
-
-
+// Start bgMusic on page load (if allowed by browser)
+window.addEventListener('load', () => {
+    bgMusic.currentTime = 0;
+    bgMusic.play();
+});
 
 // Event listeners
 startButton.addEventListener("click", startGame);
