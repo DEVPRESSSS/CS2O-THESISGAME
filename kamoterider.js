@@ -60,17 +60,17 @@ let gameActive = false;
 
 // Load road
 const road = new Image();
-road.src = "images/cropRoad.png";
+road.src = "Images/cropRoad.png";
 
 
 //load the player's motorbike a
 const car = new Image();
-car.src = "images/Motorcycle.png";
+car.src = "Images/Motorcycle.png";
 
 
 // Load enemy car
 const enemyCar = new Image();
-enemyCar.src = "images/EnemyCar2.png";
+enemyCar.src = "Images/EnemyCar2.png";
 
 // For continuous background music, enable looping
 bgMusic.loop = true;
